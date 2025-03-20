@@ -3,10 +3,11 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from collections import defaultdict
+import plotly.graph_objects as go
 
 # Config
-PCAP_FILE_BEFORE = 'pcap_files/before_mud.pcap' # Before MUD
-PCAP_FILE_AFTER = 'pcap_files/after_mud.pcap'  # After MUD
+PCAP_FILE_BEFORE = 'before_mud.pcap'
+PCAP_FILE_AFTER = 'after_mud.pcap'  
 
 TOP_N = 10
 
@@ -21,7 +22,7 @@ def process_pcap(pcap_file):
     for packet in cap:
         try:
             app_proto = packet.highest_layer
-            trans_proto = packet.transport_layer if packet.transport_layer else 'Unknown'
+            trans_proto = packet.transport_layer if packet.transport_layer else 'Encrypted/unidentified'
             size = int(packet.length)
             app_layer_bytes[app_proto] += size
             transport_layer_bytes[trans_proto] += size
@@ -67,6 +68,8 @@ df_trans_grouped_after = group_top_n(df_trans_after, 'Transport_Protocol', 'Tota
 
 # Set plot style
 sns.set_theme(style="whitegrid", palette="muted")
+
+# BAR GRAPHS
 
 # Create side-by-side bar charts for application layer protocols
 fig, axes = plt.subplots(1, 2, figsize=(18, 6))
@@ -130,6 +133,99 @@ for p in axes[1].patches:
 
 plt.tight_layout()
 plt.savefig("before_and_after_transport_layer_comparison.png", dpi=300)
+plt.show()
+
+# STACKED BAR CHART
+
+# STACKED BAR CHART FOR APPLICATION LAYER
+
+# Merge and fill missing protocols with zero
+app_merged = pd.merge(
+    df_app_grouped_before[['Application_Protocol', 'Percentage']],
+    df_app_grouped_after[['Application_Protocol', 'Percentage']],
+    on='Application_Protocol', how='outer', suffixes=('_Before', '_After')
+).fillna(0)
+
+plt.figure(figsize=(12, 6))
+bar1 = plt.bar(app_merged['Application_Protocol'], app_merged['Percentage_Before'], color='skyblue', label='Before MUD')
+bar2 = plt.bar(app_merged['Application_Protocol'], app_merged['Percentage_After'], 
+               bottom=app_merged['Percentage_Before'], color='lightgreen', label='After MUD')
+
+plt.title(f"Application-Layer Protocols: Stacked Comparison (Before vs After MUD)", fontsize=16)
+plt.xlabel("Application Protocol", fontsize=12)
+plt.ylabel("Percentage of Total Traffic (%)", fontsize=12)
+plt.legend()
+plt.tight_layout()
+plt.savefig("application_layer_stacked_comparison.png", dpi=300)
+plt.show()
+
+# STACKED BAR CHART FOR TRANSPORT LAYER
+
+trans_merged = pd.merge(
+    df_trans_grouped_before[['Transport_Protocol', 'Percentage']],
+    df_trans_grouped_after[['Transport_Protocol', 'Percentage']],
+    on='Transport_Protocol', how='outer', suffixes=('_Before', '_After')
+).fillna(0)
+
+plt.figure(figsize=(10, 6))
+bar1 = plt.bar(trans_merged['Transport_Protocol'], trans_merged['Percentage_Before'], color='orange', label='Before MUD')
+bar2 = plt.bar(trans_merged['Transport_Protocol'], trans_merged['Percentage_After'],
+               bottom=trans_merged['Percentage_Before'], color='mediumseagreen', label='After MUD')
+
+plt.title(f"Transport-Layer Protocols: Stacked Comparison (Before vs After MUD)", fontsize=16)
+plt.xlabel("Transport Protocol", fontsize=12)
+plt.ylabel("Percentage of Total Traffic (%)", fontsize=12)
+plt.legend()
+plt.tight_layout()
+plt.savefig("transport_layer_stacked_comparison.png", dpi=300)
+plt.show()
+
+# PIE CHART
+
+# Create side-by-side pie charts for application layer protocols
+fig, axes = plt.subplots(1, 2, figsize=(18, 8))
+
+# Application-layer pie chart Before MUD
+axes[0].pie(df_app_grouped_before['Total_Bytes'], 
+            labels=df_app_grouped_before['Application_Protocol'], 
+            autopct='%1.1f%%', 
+            startangle=140, 
+            colors=sns.color_palette("colorblind", len(df_app_grouped_before)))
+axes[0].set_title(f"Before MUD: Application-Layer Traffic Distribution", fontsize=16)
+
+# Application-layer pie chart After MUD
+axes[1].pie(df_app_grouped_after['Total_Bytes'], 
+            labels=df_app_grouped_after['Application_Protocol'], 
+            autopct='%1.1f%%', 
+            startangle=140, 
+            colors=sns.color_palette("colorblind", len(df_app_grouped_after)))
+axes[1].set_title(f"After MUD: Application-Layer Traffic Distribution", fontsize=16)
+
+plt.tight_layout()
+plt.savefig("before_and_after_app_layer_pie_comparison.png", dpi=300)
+plt.show()
+
+# Create side-by-side pie charts for transport layer protocols
+fig, axes = plt.subplots(1, 2, figsize=(18, 8))
+
+# Before MUD pie chart
+axes[0].pie(df_trans_grouped_before['Total_Bytes'], 
+            labels=df_trans_grouped_before['Transport_Protocol'], 
+            autopct='%1.1f%%', 
+            startangle=140, 
+            colors=sns.color_palette("colorblind", len(df_trans_grouped_before)))
+axes[0].set_title(f"Before MUD: Transport-Layer Traffic Distribution", fontsize=16)
+
+# After MUD pie chart
+axes[1].pie(df_trans_grouped_after['Total_Bytes'], 
+            labels=df_trans_grouped_after['Transport_Protocol'], 
+            autopct='%1.1f%%', 
+            startangle=140, 
+            colors=sns.color_palette("colorblind", len(df_trans_grouped_after)))
+axes[1].set_title(f"After MUD: Transport-Layer Traffic Distribution", fontsize=16)
+
+plt.tight_layout()
+plt.savefig("before_and_after_transport_layer_pie_comparison.png", dpi=300)
 plt.show()
 
 print("All graphs saved.")
