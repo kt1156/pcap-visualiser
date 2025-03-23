@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Config
 PCAP_FILE_BEFORE = 'before_mud.pcap'
 PCAP_FILE_AFTER = 'after_mud.pcap'
 
