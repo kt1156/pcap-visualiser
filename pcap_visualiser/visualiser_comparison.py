@@ -4,17 +4,24 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
-# Config
+# CONFIGURATION 
 PCAP_FILE_BEFORE = 'before_mud.pcap'
 PCAP_FILE_AFTER = 'after_mud.pcap'
 TOP_N = 10
 
-# Function to process PCAP and return protocol stats
+# Consistent figure sizes
+FIGSIZE_HORIZONTAL = (18, 8)
+FIGSIZE_VERTICAL = (16, 7)
+FIGSIZE_STACKED = (12, 8)
+FIGSIZE_PIE = (18, 8)
+DPI = 300
+
+# PCAP files
 def process_pcap(pcap_file):
     cap = pyshark.FileCapture(pcap_file, keep_packets=False)
     app_layer_bytes = defaultdict(int)
     transport_layer_bytes = defaultdict(int)
-    
+
     print(f"Processing {pcap_file}...")
     for packet in cap:
         try:
@@ -38,7 +45,7 @@ def process_pcap(pcap_file):
 
     return df_app, df_trans
 
-# Grouping function for top N protocols
+# Top N protocols
 def group_top_n(df, column_name, value_column, n=TOP_N):
     df_sorted = df.sort_values(by=value_column, ascending=False).reset_index(drop=True)
     if len(df_sorted) > n:
@@ -51,163 +58,114 @@ def group_top_n(df, column_name, value_column, n=TOP_N):
     grouped_df['Percentage'] = (grouped_df[value_column] / grouped_df[value_column].sum()) * 100
     return grouped_df
 
-# Process PCAPs
+# Save graphs
+def save_and_show(fig, filename):
+    fig.tight_layout()
+    fig.savefig(filename, dpi=DPI)
+    plt.show()
+
+# Process PCAP files
 df_app_before, df_trans_before = process_pcap(PCAP_FILE_BEFORE)
 df_app_after, df_trans_after = process_pcap(PCAP_FILE_AFTER)
 
-# Group dataframes for application & transport layer
 df_app_before_group = group_top_n(df_app_before, 'Application_Protocol', 'Total_Bytes')
 df_app_after_group = group_top_n(df_app_after, 'Application_Protocol', 'Total_Bytes')
 df_trans_before_group = group_top_n(df_trans_before, 'Transport_Protocol', 'Total_Bytes')
 df_trans_after_group = group_top_n(df_trans_after, 'Transport_Protocol', 'Total_Bytes')
 
-# ------------------------------------------
+# Plots
 
-# Horizontal bar (Application Layer)
-fig, axes = plt.subplots(1, 2, figsize=(18, 8))
+# Horizontal bar charts for Application Layer
+fig, axes = plt.subplots(1, 2, figsize=FIGSIZE_HORIZONTAL)
 sns.barplot(y="Application_Protocol", x="Percentage", data=df_app_before_group, palette="Blues_d", ax=axes[0])
-axes[0].set_title("Before MUD - App Protocols (Horizontal)")
-axes[0].set_ylabel("Application Protocol")
-
-# Add percentage labels to the bars in the first plot (Before MUD)
-# for p in axes[0].patches:
-   #  width = p.get_width()  # Get the width of the bar
-   #  axes[0].text(width + 1, p.get_y() + p.get_height() / 2, f'{width:.1f}%', ha='left', va='center')
-
+axes[0].set_title("Before MUD - Application Protocols")
+axes[0].set_ylabel("")
 sns.barplot(y="Application_Protocol", x="Percentage", data=df_app_after_group, palette="Greens_d", ax=axes[1])
-axes[1].set_title("After MUD - App Protocols (Horizontal)")
-axes[1].set_ylabel("Application Protocol")
+axes[1].set_title("After MUD - Application Protocols")
+axes[1].set_ylabel("")
+save_and_show(fig, "horizontal_app_protocol_comparison.png")
 
-# Add percentage labels to the bars in the second plot (After MUD)
-# for p in axes[1].patches:
-   #  width = p.get_width()  # Get the width of the bar
-   #  axes[1].text(width + 1, p.get_y() + p.get_height() / 2, f'{width:.1f}%', ha='left', va='center')
-
-plt.tight_layout()
-plt.savefig("horizontal_app_protocol_comparison.png", dpi=300)
-plt.show()
-
-# Horizontal bar (Transport Layer)
-fig, axes = plt.subplots(1, 2, figsize=(16, 7))
+# Horizontal bar charts for Transport Layer
+fig, axes = plt.subplots(1, 2, figsize=FIGSIZE_HORIZONTAL)
 sns.barplot(y="Transport_Protocol", x="Percentage", data=df_trans_before_group, palette="Oranges_d", ax=axes[0])
-axes[0].set_title("Before MUD - Transport Protocols (Horizontal)")
-axes[0].set_ylabel("Transport Protocol")
-
-# Add percentage labels to the bars in the first plot (Before MUD)
-# for p in axes[0].patches:
-    # width = p.get_width()  # Get the width of the bar
-    # axes[0].text(width + 1, p.get_y() + p.get_height() / 2, f'{width:.1f}%', ha='left', va='center')
-
+axes[0].set_title("Before MUD - Transport Protocols")
+axes[0].set_ylabel("")
 sns.barplot(y="Transport_Protocol", x="Percentage", data=df_trans_after_group, palette="Purples_d", ax=axes[1])
-axes[1].set_title("After MUD - Transport Protocols (Horizontal)")
-axes[1].set_ylabel("Transport Protocol")
+axes[1].set_title("After MUD - Transport Protocols")
+axes[1].set_ylabel("")
+save_and_show(fig, "horizontal_transport_protocol_comparison.png")
 
-# Add percentage labels to the bars in the second plot (After MUD)
-# for p in axes[1].patches:
-    # width = p.get_width()  # Get the width of the bar
-   #  axes[1].text(width + 1, p.get_y() + p.get_height() / 2, f'{width:.1f}%', ha='left', va='center')
-
-plt.tight_layout()
-plt.savefig("horizontal_transport_protocol_comparison.png", dpi=300)
-plt.show()
-
-# ------------------------------------------
-
-# Vertical bar (Application Layer)
-
-fig, axes = plt.subplots(1, 2, figsize=(18, 8))
-
+# Vertical bar charts for Application Layer
+fig, axes = plt.subplots(1, 2, figsize=FIGSIZE_VERTICAL)
 sns.barplot(x="Application_Protocol", y="Percentage", data=df_app_before_group, palette="Blues_d", ax=axes[0])
-axes[0].set_title("Before MUD - App Protocols (Vertical)")
-axes[0].set_xlabel("Application Protocol")
-axes[0].set_ylabel("Percentage")
-
-# After MUD bar plot 
+axes[0].set_title("Before MUD - Application Protocols")
+axes[0].set_xlabel("")
 sns.barplot(x="Application_Protocol", y="Percentage", data=df_app_after_group, palette="Greens_d", ax=axes[1])
-axes[1].set_title("After MUD - App Protocols (Vertical)")
-axes[1].set_xlabel("Application Protocol")
-axes[1].set_ylabel("Percentage")
+axes[1].set_title("After MUD - Application Protocols")
+axes[1].set_xlabel("")
+save_and_show(fig, "vertical_app_protocol_comparison.png")
 
-plt.tight_layout()
-plt.savefig("vertical_app_protocol_comparison.png", dpi=300)
-plt.show()
-
-# Vertical bar (Transport Layer)
-
-fig, axes = plt.subplots(1, 2, figsize=(16, 7))
-
-# Before MUD bar plot
+# Vertical bar charts for Transport Layer
+fig, axes = plt.subplots(1, 2, figsize=FIGSIZE_VERTICAL)
 sns.barplot(x="Transport_Protocol", y="Percentage", data=df_trans_before_group, palette="Oranges_d", ax=axes[0])
-axes[0].set_title("Before MUD - Transport Protocols (Vertical)")
-axes[0].set_xlabel("Transport Protocol")
-axes[0].set_ylabel("Percentage")
-
-# After MUD bar plot 
+axes[0].set_title("Before MUD - Transport Protocols")
+axes[0].set_xlabel("")
 sns.barplot(x="Transport_Protocol", y="Percentage", data=df_trans_after_group, palette="Purples_d", ax=axes[1])
-axes[1].set_title("After MUD - Transport Protocols (Vertical)")
-axes[1].set_xlabel("Transport Protocol")
-axes[1].set_ylabel("Percentage")
+axes[1].set_title("After MUD - Transport Protocols")
+axes[1].set_xlabel("")
+save_and_show(fig, "vertical_transport_protocol_comparison.png")
 
-plt.tight_layout()
-plt.savefig("vertical_transport_protocol_comparison.png", dpi=300)
-plt.show()
+# Vertical bar charts for Application Layer with legend on top
+fig, axes = plt.subplots(1, 2, figsize=FIGSIZE_VERTICAL)
 
-# ------------------------------------------
+# Before MUD
+palette_before = sns.color_palette("Blues_d", len(df_app_before_group))
+sns.barplot(x="Application_Protocol", y="Percentage", data=df_app_before_group, palette=palette_before, ax=axes[0])
+axes[0].set_title("Before MUD - Application Protocols")
+axes[0].set_xlabel("")
+axes[0].set_xticklabels([])  # remove x-axis tick labels
 
-# Stacked bar
+# After MUD
+palette_after = sns.color_palette("Greens_d", len(df_app_after_group))
+sns.barplot(x="Application_Protocol", y="Percentage", data=df_app_after_group, palette=palette_after, ax=axes[1])
+axes[1].set_title("After MUD - Application Protocols")
+axes[1].set_xlabel("")
+axes[1].set_xticklabels([]) 
 
-df_app_before_group['Type'] = 'Before'
-df_app_after_group['Type'] = 'After'
-df_trans_before_group['Type'] = 'Before'
-df_trans_after_group['Type'] = 'After'
+# Create legends
+handles_before = [plt.Rectangle((0, 0), 1, 1, color=c) for c in palette_before]
+handles_after = [plt.Rectangle((0, 0), 1, 1, color=c) for c in palette_after]
 
-# Pivot data for stacked bar
-df_app_combined = pd.concat([df_app_before_group, df_app_after_group])
-app_stacked = df_app_combined.pivot(index='Application_Protocol', columns='Type', values='Percentage').fillna(0)
+axes[0].legend(handles_before, df_app_before_group['Application_Protocol'], title="Protocols", bbox_to_anchor=(0.5, 0.95), loc='upper center', ncol=3)
+axes[1].legend(handles_after, df_app_after_group['Application_Protocol'], title="Protocols", bbox_to_anchor=(0.5, 0.95), loc='upper center', ncol=3)
+save_and_show(fig, "vertical_app_protocol_comparison)_with_legends.png")
 
-# Create stacked bar chart
-plt.figure(figsize=(10, 6))
-bottom_values = None
-for column, color in zip(app_stacked.columns, ['blue', 'green']):
-    plt.bar(app_stacked.index, app_stacked[column], bottom=bottom_values, label=column, color=color)
-    if bottom_values is None:
-        bottom_values = app_stacked[column]
-    else:
-        bottom_values += app_stacked[column]
+# Vertical bar charts for Transport Layer with legend on top
+fig, axes = plt.subplots(1, 2, figsize=FIGSIZE_VERTICAL)
 
-plt.title("Stacked Application Protocols (Before & After MUD)")
-plt.xlabel("Application Protocol")
-plt.ylabel("Percentage")
-plt.legend()
-plt.tight_layout()
-plt.savefig("stacked_app_protocol_comparison.png", dpi=300)
-plt.show()
+# Before MUD
+palette_before = sns.color_palette("Blues_d", len(df_trans_before_group))
+sns.barplot(x="Transport_Protocol", y="Percentage", data=df_trans_before_group, palette=palette_before, ax=axes[0])
+axes[0].set_title("Before MUD - Transport Protocols")
+axes[0].set_xlabel("")
+axes[0].set_xticklabels([])  # remove x-axis tick labels
 
-# Pivot data for stacked bar
-df_trans_combined = pd.concat([df_trans_before_group, df_trans_after_group])
-trans_stacked = df_trans_combined.pivot(index='Transport_Protocol', columns='Type', values='Percentage').fillna(0)
+# After MUD
+palette_after = sns.color_palette("Greens_d", len(df_trans_after_group))
+sns.barplot(x="Transport_Protocol", y="Percentage", data=df_trans_after_group, palette=palette_after, ax=axes[1])
+axes[1].set_title("After MUD - Transport Protocols")
+axes[1].set_xlabel("")
+axes[1].set_xticklabels([]) 
 
-# Create stacked bar chart
-plt.figure(figsize=(10, 6))
-bottom_values = None
-for column, color in zip(trans_stacked.columns, ['orange', 'purple']):
-    plt.bar(trans_stacked.index, trans_stacked[column], bottom=bottom_values, label=column, color=color)
-    if bottom_values is None:
-        bottom_values = trans_stacked[column]
-    else:
-        bottom_values += trans_stacked[column]
+# Create legends
+handles_before = [plt.Rectangle((0, 0), 1, 1, color=c) for c in palette_before]
+handles_after = [plt.Rectangle((0, 0), 1, 1, color=c) for c in palette_after]
 
-plt.title("Stacked Transport Protocols (Before & After MUD)")
-plt.xlabel("Transport Protocol")
-plt.ylabel("Percentage")
-plt.legend()
-plt.tight_layout()
-plt.savefig("stacked_transport_protocol_comparison.png", dpi=300)
-plt.show()
+axes[0].legend(handles_before, df_trans_before_group['Transport_Protocol'], title="Protocols", bbox_to_anchor=(0.65, 0.95), loc='upper center', ncol=3)
+axes[1].legend(handles_after, df_trans_after_group['Transport_Protocol'], title="Protocols", bbox_to_anchor=(0.65, 0.95), loc='upper center', ncol=3)
+save_and_show(fig, "vertical_trans_protocol_comparison)_with_legends.png")
 
-# ------------------------------------------
-
-# Diverging bar (Application Layer difference)
+# Diverging bar chart for Application Layer differences
 app_compare = pd.merge(
     df_app_before_group[['Application_Protocol', 'Percentage']],
     df_app_after_group[['Application_Protocol', 'Percentage']],
@@ -216,17 +174,14 @@ app_compare = pd.merge(
 app_compare['Difference'] = app_compare['Percentage_After'] - app_compare['Percentage_Before']
 app_compare = app_compare.sort_values(by='Difference', ascending=False)
 
-plt.figure(figsize=(10, 8))
+fig, ax = plt.subplots(figsize=FIGSIZE_VERTICAL)
 sns.barplot(y='Application_Protocol', x='Difference', data=app_compare, palette="coolwarm")
-plt.axvline(0, color='black', linewidth=1)
-plt.title("Diverging Bar Chart: App Protocol Change (After - Before)")
-plt.xlabel("Percentage Difference")
-plt.ylabel("Application Protocol")
-plt.tight_layout()
-plt.savefig("diverging_app_protocols.png", dpi=300)
-plt.show()
+ax.axvline(0, color='black')
+ax.set_title("Change in Application Protocol Usage (After - Before)")
+ax.set_ylabel("")
+save_and_show(fig, "diverging_app_protocols.png")
 
-# Diverging bar (Transport Layer difference)
+# Diverging bar chart for Transport Layer differences
 trans_compare = pd.merge(
     df_trans_before_group[['Transport_Protocol', 'Percentage']],
     df_trans_after_group[['Transport_Protocol', 'Percentage']],
@@ -235,70 +190,27 @@ trans_compare = pd.merge(
 trans_compare['Difference'] = trans_compare['Percentage_After'] - trans_compare['Percentage_Before']
 trans_compare = trans_compare.sort_values(by='Difference', ascending=False)
 
-plt.figure(figsize=(9, 7))
+fig, ax = plt.subplots(figsize=FIGSIZE_VERTICAL)
 sns.barplot(y='Transport_Protocol', x='Difference', data=trans_compare, palette="vlag")
-plt.axvline(0, color='black', linewidth=1)
-plt.title("Diverging Bar Chart: Transport Protocol Change (After - Before)")
-plt.xlabel("Percentage Difference")
-plt.ylabel("Transport Protocol")
-plt.tight_layout()
-plt.savefig("diverging_transport_protocols.png", dpi=300)
-plt.show()
+ax.axvline(0, color='black')
+ax.set_title("Change in Transport Protocol Usage (After - Before)")
+ax.set_ylabel("")
+save_and_show(fig, "diverging_transport_protocols.png")
 
-# ------------------------------------------
+# Pie chart for Application Layer
+fig, axes = plt.subplots(1, 2, figsize=FIGSIZE_PIE)
+axes[0].pie(df_app_before_group['Total_Bytes'], labels=df_app_before_group['Application_Protocol'], autopct='%1.1f%%')
+axes[0].set_title("Before MUD - Application Layer Distribution")
+axes[1].pie(df_app_after_group['Total_Bytes'], labels=df_app_after_group['Application_Protocol'], autopct='%1.1f%%')
+axes[1].set_title("After MUD - Application Layer Distribution")
+save_and_show(fig, "app_layer_pie_comparison.png")
 
-# Pie Charts for application layer
-fig, axes = plt.subplots(1, 2, figsize=(18, 8))
+# Pie chart for Transport Layer
+fig, axes = plt.subplots(1, 2, figsize=FIGSIZE_PIE)
+axes[0].pie(df_trans_before_group['Total_Bytes'], labels=df_trans_before_group['Transport_Protocol'], autopct='%1.1f%%')
+axes[0].set_title("Before MUD - Transport Layer Distribution")
+axes[1].pie(df_trans_after_group['Total_Bytes'], labels=df_trans_after_group['Transport_Protocol'], autopct='%1.1f%%')
+axes[1].set_title("After MUD - Transport Layer Distribution")
+save_and_show(fig, "transport_layer_pie_comparison.png")
 
-# Application-layer pie chart Before MUD
-axes[0].pie(
-    df_app_before_group['Total_Bytes'], 
-    labels=df_app_before_group['Application_Protocol'], 
-    autopct='%1.1f%%', 
-    startangle=140, 
-    colors=sns.color_palette("colorblind", len(df_app_before_group))
-)
-axes[0].set_title(f"Before MUD: Application-Layer Traffic Distribution", fontsize=16)
-
-# Application-layer pie chart After MUD
-axes[1].pie(
-    df_app_after_group['Total_Bytes'], 
-    labels=df_app_after_group['Application_Protocol'], 
-    autopct='%1.1f%%', 
-    startangle=140, 
-    colors=sns.color_palette("colorblind", len(df_app_after_group))
-)
-axes[1].set_title(f"After MUD: Application-Layer Traffic Distribution", fontsize=16)
-
-plt.tight_layout()
-plt.savefig("before_and_after_app_layer_pie_comparison.png", dpi=300)
-plt.show()
-
-# Pie charts for transport layer
-fig, axes = plt.subplots(1, 2, figsize=(18, 8))
-
-# Transport-layer pie chart Before MUD
-axes[0].pie(
-    df_trans_before_group['Total_Bytes'], 
-    labels=df_trans_before_group['Transport_Protocol'], 
-    autopct='%1.1f%%', 
-    startangle=140, 
-    colors=sns.color_palette("colorblind", len(df_trans_before_group))
-)
-axes[0].set_title(f"Before MUD: Transport-Layer Traffic Distribution", fontsize=16)
-
-# Transport-layer pie chart After MUD
-axes[1].pie(
-    df_trans_after_group['Total_Bytes'], 
-    labels=df_trans_before_group['Transport_Protocol'], 
-    autopct='%1.1f%%', 
-    startangle=140, 
-    colors=sns.color_palette("colorblind", len(df_trans_after_group))
-)
-axes[1].set_title(f"After MUD: Transport-Layer Traffic Distribution", fontsize=16)
-
-plt.tight_layout()
-plt.savefig("before_and_after_transport_layer_pie_comparison.png", dpi=300)
-plt.show()
-
-print("All graphs saved.")
+print("All plots finished and saved")
