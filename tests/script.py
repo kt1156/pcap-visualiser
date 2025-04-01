@@ -50,3 +50,5 @@ def generate_complex_traffic(filename, before_mud=True):
 # Generate before and after MUD PCAPs
 generate_complex_traffic('before_mud.pcap', before_mud=True)
 generate_complex_traffic('after_mud.pcap', before_mud=False)
+
+# graph js
