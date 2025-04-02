@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 import io
 import base64
+import numpy as np
 
 # CONFIGURATION
 TOP_N = 10
@@ -136,6 +137,107 @@ def generate_combined_graph(df_app, df_trans):
     fig.savefig(img_data, format='png')
     img_data.seek(0)
     img_base64 = base64.b64encode(img_data.read()).decode('utf-8')
+    plt.close(fig)
+
+    return img_base64
+
+def calculate_latency_and_bandwidth(pcap_file):
+    cap = pyshark.FileCapture(pcap_file, keep_packets=False)
+
+    timestamps = []
+    packet_sizes = []
+
+    for packet in cap:
+        try:
+            timestamps.append(float(packet.sniff_time.timestamp()))
+            packet_sizes.append(int(packet.length))
+        except AttributeError:
+            continue
+
+    cap.close()
+
+    if len(timestamps) < 2:
+        return None, None
+
+    # Calculate latency (differences in timestamps)
+    latencies = np.diff(timestamps) * 1000  # convert to ms
+    avg_latency = np.mean(latencies)
+
+    # Calculate bandwidth (bytes per second)
+    duration = timestamps[-1] - timestamps[0]
+    bandwidth = sum(packet_sizes) / duration if duration > 0 else 0
+
+    return avg_latency, bandwidth
+
+def calculate_latency_and_bandwidth(pcap_file):
+    cap = pyshark.FileCapture(pcap_file, keep_packets=False)
+
+    timestamps = []
+    packet_sizes = []
+
+    for packet in cap:
+        try:
+            timestamps.append(float(packet.sniff_time.timestamp()))
+            packet_sizes.append(int(packet.length))
+        except AttributeError:
+            continue
+
+    cap.close()
+
+    if len(timestamps) < 2:
+        return None, None, None, None
+
+    return timestamps, packet_sizes
+
+def generate_latency_graph(timestamps):
+    if len(timestamps) < 2:
+        return None
+
+    latencies = np.diff(timestamps) * 1000  # convert to milliseconds
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(timestamps[1:], latencies, marker="o", linestyle="-", color="blue", label="Latency (ms)")
+    
+    ax.set_title("Latency Over Time")
+    ax.set_xlabel("Timestamp")
+    ax.set_ylabel("Latency (ms)")
+    ax.legend()
+    ax.grid(True)
+
+    img_data = io.BytesIO()
+    fig.savefig(img_data, format="png")
+    img_data.seek(0)
+    img_base64 = base64.b64encode(img_data.read()).decode("utf-8")
+    plt.close(fig)
+
+    return img_base64
+
+
+def generate_bandwidth_graph(timestamps, packet_sizes):
+    if len(timestamps) < 2:
+        return None
+
+    bandwidths = []
+    for i in range(1, len(timestamps)):
+        time_diff = timestamps[i] - timestamps[i - 1]
+        if time_diff > 0:
+            bandwidths.append(packet_sizes[i] / time_diff)  # Bytes per second
+        else:
+            bandwidths.append(0)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(timestamps[1:], bandwidths, marker="o", linestyle="-", color="green", label="Bandwidth (Bytes/sec)")
+
+    ax.set_title("Bandwidth Over Time")
+    ax.set_xlabel("Timestamp")
+    ax.set_ylabel("Bandwidth (Bytes/sec)")
+    ax.legend()
+    ax.grid(True)
+
+    img_data = io.BytesIO()
+    fig.savefig(img_data, format="png")
+    img_data.seek(0)
+    img_base64 = base64.b64encode(img_data.read()).decode("utf-8")
     plt.close(fig)
 
     return img_base64

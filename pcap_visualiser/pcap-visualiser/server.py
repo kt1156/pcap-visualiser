@@ -2,10 +2,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from werkzeug.utils import secure_filename
-from process_pcap import process_pcap, generate_transport_graph, generate_application_graph, generate_combined_graph
+from process_pcap import calculate_latency_and_bandwidth, generate_bandwidth_graph, generate_latency_graph, process_pcap, generate_transport_graph, generate_application_graph, generate_combined_graph
 import matplotlib
 
-matplotlib.use('Agg') # disable gui, fixes asynchronous 
+matplotlib.use('Agg') # disable gui, fixes asynchronous issues
 
 app = Flask(__name__)
 CORS(app)
@@ -48,6 +48,10 @@ def process_pcap_api():
         try:
             df_app1, df_trans1 = process_pcap(pcap1_path)
             df_app2, df_trans2 = process_pcap(pcap2_path)
+
+            timestamps1, packet_sizes1 = calculate_latency_and_bandwidth(pcap1_path)
+            timestamps2, packet_sizes2 = calculate_latency_and_bandwidth(pcap2_path)
+
             print("Pcap files processed successfully")
         except Exception as e:
             print(f"Error processing pcap files: {e}")
@@ -61,8 +65,13 @@ def process_pcap_api():
             transport_graph2 = generate_transport_graph(df_trans2)
             app_graph2 = generate_application_graph(df_app2)
             mixed_graph2 = generate_combined_graph(df_app2, df_trans2)
-            print("Graphs generated successfully")
 
+            latency_graph1 = generate_latency_graph(timestamps1)
+            latency_graph2 = generate_latency_graph(timestamps2)
+            bandwidth_graph1 = generate_bandwidth_graph(timestamps1, packet_sizes1)
+            bandwidth_graph2 = generate_bandwidth_graph(timestamps2, packet_sizes2)
+
+            print("Graphs generated successfully")
         except Exception as e:
             print(f"Error generating graphs: {e}")
             return jsonify({"error": "Error generating graphs"}), 500
@@ -73,7 +82,11 @@ def process_pcap_api():
             "mixedGraph1": mixed_graph1,
             "transportGraph2": transport_graph2,
             "appGraph2": app_graph2,
-            "mixedGraph2": mixed_graph2
+            "mixedGraph2": mixed_graph2,
+            "latencyGraph1": latency_graph1,
+            "latencyGraph2": latency_graph2,
+            "bandwidthGraph1": bandwidth_graph1,
+            "bandwidthGraph2": bandwidth_graph2
         }
 
         print(f"appGraph1 (first 50 chars): {results['appGraph1'][:50]}")
