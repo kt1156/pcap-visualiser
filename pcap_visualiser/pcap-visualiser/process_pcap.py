@@ -62,7 +62,7 @@ def generate_application_graph(df_app):
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    palette = sns.color_palette("Blues_d", len(df_app_group))
+    palette = sns.color_palette("viridis", len(df_app_group))
     sns.barplot(x="Application_Protocol", y="Percentage", data=df_app_group, palette=palette, ax=ax, hue="Application_Protocol", legend=False)
     ax.set_title("Application Protocols", pad=30) 
     ax.set_xlabel("")
@@ -90,7 +90,7 @@ def generate_transport_graph(df_trans):
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    palette = sns.color_palette("Greens_d", len(df_trans_group))
+    palette = sns.color_palette("viridis", len(df_trans_group))
     sns.barplot(x="Transport_Protocol", y="Percentage", data=df_trans_group, palette=palette, ax=ax, hue="Transport_Protocol", legend=False)
     ax.set_title("Transport Protocols", pad = 30)
     ax.set_xlabel("")
@@ -120,7 +120,7 @@ def generate_combined_graph(df_app, df_trans):
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    palette = sns.color_palette("Purples_d", len(df_app_group))
+    palette = sns.color_palette("viridis", len(df_app_group))
     sns.barplot(x="Protocol", y="Percentage", data=df_app_group, palette=palette, ax=ax, hue="Protocol", legend=False)
     ax.set_title("Combined Application & Transport Protocols", pad=30)
     ax.set_xlabel("")
