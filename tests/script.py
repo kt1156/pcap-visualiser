@@ -1,6 +1,8 @@
 from scapy.all import *
 import random
 
+# Generate sample before and after MUD files
+
 def generate_complex_traffic(filename, before_mud=True):
     packets = []
     for i in range(300): 
@@ -50,5 +52,3 @@ def generate_complex_traffic(filename, before_mud=True):
 # Generate before and after MUD PCAPs
 generate_complex_traffic('before_mud.pcap', before_mud=True)
 generate_complex_traffic('after_mud.pcap', before_mud=False)
-
-# graph js
