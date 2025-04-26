@@ -7,6 +7,15 @@ import io
 import base64
 import numpy as np
 
+# Set default font sizes
+plt.rcParams.update({
+    'axes.titlesize': 18,
+    'axes.labelsize': 16,
+    'xtick.labelsize': 16,
+    'ytick.labelsize': 16,
+    'legend.fontsize': 12,
+})
+
 # CONFIGURATION
 TOP_N = 10
 
