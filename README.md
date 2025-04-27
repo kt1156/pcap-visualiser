@@ -47,9 +47,9 @@ server.py: Main Flask server handling uploads and processing requests.
 
 process_pcap.py: Functions for analysing PCAP files and generating graphs.
 
-script.py: A helper script to generate mock PCAP files for before/after MUD is applied.
-
 uploads/: Folder where uploaded PCAPs are stored temporarily.
+
+tests/script.py: A helper script to generate mock PCAP files for before/after MUD is applied.
 
 ## Mock Data Generation
 You can generate mock before_mud.pcap and after_mud.pcap files using:
