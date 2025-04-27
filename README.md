@@ -1,6 +1,6 @@
 # pcap-visualiser
 
-This is a Python project built using [Flask](https://flask.palletsprojects.com/), designed to process and visaulise PCAP files for analysis alongside the osMUD-UI2 interface.
+This is a Python project built using [Flask](https://flask.palletsprojects.com/), designed to process and visaulise PCAP files for analysis alongside the osMUD-UI2 interface [osMUD-UI2](https://github.com/kt1156/osMUD-UI2).
 
 ## Included Libraries
 
