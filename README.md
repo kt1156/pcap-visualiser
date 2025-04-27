@@ -44,12 +44,15 @@ Graphs are returned as Base64-encoded images in the API response.
 
 ##  File Structure
 server.py: Main Flask server handling uploads and processing requests.
+
 process_pcap.py: Functions for analysing PCAP files and generating graphs.
+
 script.py: A helper script to generate mock PCAP files for before/after MUD is applied.
+
 uploads/: Folder where uploaded PCAPs are stored temporarily.
 
 ## Mock Data Generation
-You can generate fake before_mud.pcap and after_mud.pcap files using:
+You can generate mock before_mud.pcap and after_mud.pcap files using:
 ```bash
 python script.py
 ```
@@ -57,7 +60,7 @@ This script uses Scapy to simulate common network traffic, ideal for testing.
 
 ## Notes
 
-Make sure tshark (Wireshark command line tool) is installed if you encounter issues with pyshark.
+Make sure tshark (Wireshark command line tool) is installed if you encounter issues with PyShark.
 You can install tshark using:
 
 ```bash
